@@ -18,10 +18,15 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
 )
 
+# find_package(Eigen3)
 find_package(PCL REQUIRED)
 find_package(OpenCV)
 find_package(Threads)
 find_package(Ceres REQUIRED)
+find_package(FMT REQUIRED)
+LIST( APPEND CMAKE_MODULE_PATH /home/sky/programs/g2o/cmake_modules )
+set(G2O_ROOT /usr/local/include/g2o)
+find_package(G2O REQUIRED)
 find_package(Qt5 COMPONENTS Widgets)
 
 set(CMAKE_AUTOMOC ON)
@@ -44,9 +49,14 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  # ${EIGEN3_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${CERES_INCLUDE_DIRS}
+  ${G2O_INCLUDE_DIRS}
 )
+include_directories("/usr/include/suitesparse/")
+
 
 add_executable(cameraCalib src/cameraCalib.cpp)
 target_link_libraries(cameraCalib Qt5::Widgets ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
@@ -60,6 +70,11 @@ target_link_libraries(cornerPhoto Qt5::Widgets ${catkin_LIBRARIES} ${OpenCV_LIBR
 
 add_executable(getExt1 src/cam_lid_external1.cpp src/common.h)
 target_link_libraries(getExt1 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${CERES_LIBRARIES})
+
+add_executable(getExt4g2o src/cam_lid_g2o.cpp src/common.h)
+target_link_libraries(getExt4g2o ${catkin_LIBRARIES}  ${CERES_LIBRARIES} 
+                              fmt::fmt g2o_core g2o_types_slam3d g2o_solver_csparse 
+                              g2o_stuff g2o_csparse_extension)
 
 add_executable(getExt2 src/cam_lid_external2.cpp src/common.h)
 target_link_libraries(getExt2 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${CERES_LIBRARIES})

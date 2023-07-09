@@ -1,10 +1,12 @@
-# 改进
+# 改进与学习
 
 1、适配PointCloud2类型（原项目仅支持Livox雷达）
 
 2、改进图像手动选择角点方式：选择角点后即可进行下一张选点，无需重新运行脚本，通过OpenCV鼠标绑定函数存储全局角点数据（原项目仅支持一次一张图像进行选点）
 
 3、改进雷达选点方式：使用open3d实现连续选点（原项目使用pcl_viewer 手动打开.pcd文件进行选择，一次一帧）
+
+4、使用g2o替代ceres-sovler，或使用ceres估计后的结果作为g2o初值进一步迭代（原项目只使用ceres）
 
 [中文文档](doc_resources/README_cn.md)
 
@@ -45,9 +47,7 @@ catkin_make
 You can skip this step if they are already installed.
 
 - [PCL installation](http://www.pointclouds.org/downloads/linux.html)
-
 - [Eigen installation](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-
 - [Ceres-solver installation](http://ceres-solver.org/)
 
 #### 1.3 Download source code and compile
@@ -66,17 +66,11 @@ source devel/setup.bash
 This project includes the following nodes:
 
 - cameraCalib - calibrate the camera intrinsic parameters
-
 - pcdTransfer - transfer the LiDAR rosbag to PCD files
-
 - cornerPhoto - obtain the corner of the photo
-
-- getExt1 - node1 to calculate the extrinsic parameters(optimize only the extrinsic) 
-
+- getExt1 - node1 to calculate the extrinsic parameters(optimize only the extrinsic)
 - getExt2 - node2 to calculate the extrinsic parameters(optimize the intrinsic and extrinsic together)
-
 - projectCloud - project the LiDAR point cloud on the photo
-
 - colorLidar - give color to the LiDAR point cloud
 
 You can find the corresponding launch file in src/calibration/launch folder if you want to modify any launch file.
@@ -163,7 +157,6 @@ In this solution we use Haikang camera supervisor MVS to connect and turn on the
 #### 3.4 Collect the photo and LiDAR data
 
 1. Take the photo
-
 2. Run the command to record the point cloud
 
 ```
@@ -171,7 +164,6 @@ rosbag record /livox/lidar
 ```
 
 3. Save a photo and a rosbag of 10 seconds for each data
-
 4. After collecting all the data, put photos in data/photo folder; LiDAR rosbag in data/lidar folder.
 
 ### Step4: Calibration data acquisition
@@ -203,7 +195,6 @@ roslaunch camera_lidar_calibration cornerPhoto.launch
 #### 4.3 Acquire the corner coordinates in point cloud
 
 1. Check the rosbag path in pcdTransfer.launch, set the number of rosbag, and name the rosbag  0.bag, 1.bag...etc.
-
 2. Run the command to convert the rosbag to PCD files in batches, they will be saved in defaut path data/pcdFiles.
 
 ```
@@ -264,7 +255,7 @@ If the result obtained by getExt2 is better after the verification, update the n
 
 #### 6.1 Briefs
 
-After obtaining extrinsic parameters, we can use two common applications to see the fusion result. The first one is the projection of the point cloud on the photo, the second one is the point cloud coloring [[Note 10]](#notes). 
+After obtaining extrinsic parameters, we can use two common applications to see the fusion result. The first one is the projection of the point cloud on the photo, the second one is the point cloud coloring [[Note 10]](#notes).
 
 #### 6.2 projection of point cloud on the photo
 
@@ -297,22 +288,14 @@ roslaunch camera_lidar_calibration colorLidar.launch
 <div align=center><img src="doc_resources/intrinsic.png"></div>
 
 2. The basic principle of calibration is to calculate and obtain the conversion relationship between the xyz coordinates in the LiDAR coordinate system and the xy coordinates in the camera coordinate system of the same target. Because the corner point is a relatively obvious target in the point cloud and the photo, this method can reduce the calibration error.
-
 3. We can also use multiple calibration boards or a chessboard calibration board that can be recognized by the LiDAR.
-
 4. Be careful not to change the format, otherwise you need to modify the relevant code in the getIntrinsic() and getDistortion() functions in the common.h file in the program.
-
 5. The displayed picture is corrected by distortion correction parameters. Please check the photo correction quality. For example, the photo correction on the left in the figure below has a problem, the distortion parameters may be set incorrectly. The photo on the right is normal.
 
 <div align=center><img src="doc_resources/photo_compare.png"></div>
 
 6. After opening pcl_viewer, you can enter "h" in the terminal to get the guidance.
-
 7. Note that if a line has less than 10 letters, it cannot be read as calculated data, so if the point cloud xyz or photo xy coordinates are short, you need to add up to 10 letters.
-
 8. The default initial value in the program is set according to the coordinate system of Livox LiDAR, the relative position of the LiDAR and the camera, and should be modified according to the real situation. If the initial value is badly set, it may lead to bad optimization results.
-
 9. If the cost is still relatively large at the end of the iteration (for example, 10 to the power of 4), it may be a problem with the initial value setting in the launch file, the result is only a local optimal solution, then the initial value needs to be reset.
-
 10. The point cloud of the LiDAR can be projected to the corresponding position of the photo through the intrinsic and extrinsic matrix. The color of the point cloud will be displayed from blue to red to show the distance from near to distant; For the coloring, the corresponding camera pixel coordinates can be obtained by the point cloud coordinates, the intrinsic and extrinsic matrix, and the RGB information of this pixel can be assigned to the point cloud for display, so that the LiDAR point cloud can show with the real color.
-
