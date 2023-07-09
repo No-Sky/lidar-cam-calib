@@ -23,6 +23,7 @@ find_package(PCL REQUIRED)
 find_package(OpenCV)
 find_package(Threads)
 find_package(Ceres REQUIRED)
+find_package(Sophus REQUIRED )
 find_package(FMT REQUIRED)
 LIST( APPEND CMAKE_MODULE_PATH /home/sky/programs/g2o/cmake_modules )
 set(G2O_ROOT /usr/local/include/g2o)
@@ -52,6 +53,7 @@ include_directories(
   # ${EIGEN3_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${Sophus_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
   ${G2O_INCLUDE_DIRS}
 )
@@ -72,7 +74,7 @@ add_executable(getExt1 src/cam_lid_external1.cpp src/common.h)
 target_link_libraries(getExt1 ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${CERES_LIBRARIES})
 
 add_executable(getExt4g2o src/cam_lid_g2o.cpp src/common.h)
-target_link_libraries(getExt4g2o ${catkin_LIBRARIES}  ${CERES_LIBRARIES} 
+target_link_libraries(getExt4g2o ${catkin_LIBRARIES}  ${CERES_LIBRARIES} ${Sophus_LIBRARIES}
                               fmt::fmt g2o_core g2o_types_slam3d g2o_solver_csparse 
                               g2o_stuff g2o_csparse_extension)
 
